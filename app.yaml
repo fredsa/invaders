@@ -1,0 +1,16 @@
+runtime: python27
+api_version: 1
+threadsafe: yes
+
+handlers:
+- url: /favicon\.ico
+  static_files: favicon.ico
+  upload: favicon\.ico
+
+- url: /
+  static_files: invaders.html
+  upload: invaders.html
+
+- url: /(.*)
+  static_files: \1
+  upload: .*
