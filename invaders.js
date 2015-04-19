@@ -192,7 +192,7 @@ Laser.prototype.fire = function(move_speed) {
     return;
   }
   this.activate();
-  play_sound(laser_audio_buffer);
+  play_sound(laser_audio_buffer, 1);
   this.x = ship.x;
   this.y = this.max_y;
   this.speed_y = -move_speed;
@@ -303,7 +303,7 @@ Explosion.prototype.do_math = function do_math() {
 };
 
 Explosion.prototype.explode_at = function(obj) {
-  play_sound(explosion_audio_buffer);
+  play_sound(explosion_audio_buffer, .6);
   this.activate();
   this.elem.style.opacity = 1;
   this.x = obj.x;
@@ -336,7 +336,7 @@ function start_game() {
   }
 
   load_sounds(context, function() {
-    play_sound(synthloop_audio_buffer, true);
+    play_sound(synthloop_audio_buffer, .7, true);
   });
 
   window.addEventListener("keydown", key_down);
@@ -456,10 +456,15 @@ function load_sounds(context, finishedLoading) {
   bufferLoader.load();
 }
 
-function play_sound(buffer, loop) {
+function play_sound(buffer, gain, loop) {
   var source = context.createBufferSource();
   source.buffer = buffer;
   source.loop = loop;
-  source.connect(context.destination);
+
+  var gainNode = context.createGain();
+  gainNode.gain.value = gain;
+
+  source.connect(gainNode);
+  gainNode.connect(context.destination);
   source.start(0);
 }
