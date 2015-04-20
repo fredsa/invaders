@@ -298,18 +298,11 @@ function Alien(innerText, column, row) {
   this.speed_x = this.MOVE_SPEED;
   this.column = column;
   this.row = row;
+  this.elem.style.color = COLORS[this.row % COLORS.length];
 };
 
 Alien.prototype = new GameObject();
 Alien.prototype.constructor = Alien;
-
-Alien.prototype.activate = function activate() {
-  GameObject.prototype.activate.apply(this, arguments);
-  this.aliens_cover_width = window.innerWidth * .6;
-  this.aliens_cover_height = window.innerHeight * .4;
-  this.x = window.innerWidth * .2 + this.aliens_cover_width / ALIEN_COLS * this.column;
-  this.y = window.innerHeight * .1 + this.aliens_cover_height / ALIEN_ROWS * this.row;
-};
 
 Alien.prototype.reset = function reset() {
   GameObject.prototype.reset.apply(this, arguments);
@@ -317,9 +310,17 @@ Alien.prototype.reset = function reset() {
   this.y = -1000;
 };
 
+Alien.prototype.handle_resize = function handle_resize() {
+  GameObject.prototype.handle_resize.apply(this, arguments);
+  this.aliens_cover_width = window.innerWidth * .6;
+  if (this.active) {
+    this.x = window.innerWidth * .2 + this.aliens_cover_width / ALIEN_COLS * this.column;
+    this.y = window.innerHeight * .1 + this.half_height * 2.1 * this.row;
+  }
+};
+
 Alien.prototype.step = function step() {
   GameObject.prototype.step.apply(this, arguments);
-  this.elem.style.color = COLORS[this.row % COLORS.length];
 };
 
 Alien.prototype.do_math = function do_math() {
@@ -467,6 +468,7 @@ function explode(obj) {
       continue;
     }
     explosions[i].explode_at(obj);
+    break;
   }
   obj.reset();
 }
