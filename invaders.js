@@ -1,4 +1,6 @@
-var ALIENS = 12;
+var ALIEN_ROWS = 15;
+var ALIEN_COLS = 12;
+var ALIENS = ALIEN_COLS * ALIEN_ROWS;
 var EXPLOSIONS = 3;
 
 var KEY_CODE_LEFT = 37;
@@ -239,15 +241,25 @@ Score.prototype.add_points = function add_points(points) {
 
 /* Alien ship */
 
-function Alien(innerText) {
+function Alien(innerText, column, row) {
   GameObject.apply(this, arguments);
 
   this.MOVE_SPEED = 1;
   this.speed_x = this.MOVE_SPEED;
+  this.column = column;
+  this.row = row;
 };
 
 Alien.prototype = new GameObject();
 Alien.prototype.constructor = Alien;
+
+Alien.prototype.activate = function activate() {
+  GameObject.prototype.activate.apply(this, arguments);
+  this.aliens_cover_width = window.innerWidth * .6;
+  this.aliens_cover_height = window.innerHeight * .4;
+  this.x = window.innerWidth * .2 + this.aliens_cover_width / ALIEN_COLS * this.column;
+  this.y = window.innerHeight * .1 + this.aliens_cover_height / ALIEN_ROWS * this.row;
+};
 
 Alien.prototype.handle_resize = function handle_resize() {
   GameObject.prototype.handle_resize.apply(this, arguments);
@@ -324,11 +336,11 @@ function start_game() {
 
   laser = new Laser("|");
 
-  for(var i=0; i<ALIENS; i++) {
-    aliens[i] = new Alien("<o>");
-    aliens[i].x = window.innerWidth / 2 / ALIENS * (i / 4 + 1);
-    aliens[i].y = window.innerHeight / 2 / 4 * (i % 4 + 1);
-    aliens[i].activate();
+  for(var i=0; i<ALIEN_COLS; i++) {
+    for(var j=0; j<ALIEN_ROWS; j++) {
+      aliens[i + j * ALIEN_COLS] = new Alien("<o>", i, j);
+      aliens[i + j * ALIEN_COLS].activate();
+    }
   }
 
   for(var i=0; i<EXPLOSIONS; i++) {
