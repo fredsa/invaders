@@ -5,7 +5,7 @@ var EXPLOSIONS = 3;
 
 // http://en.wikipedia.org/wiki/Web_colors
 var COLORS = [
-  'White',
+//   'White',
   'Silver',
   'Gray',
   'Black',
