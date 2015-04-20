@@ -36,6 +36,7 @@ var laser;
 var aliens = new Array(ALIENS);
 var explosions = new Array(EXPLOSIONS);
 var score;
+var is_firing;
 
 var context = new AudioContext();
 var synthloop_audio_buffer;
@@ -352,9 +353,10 @@ Explosion.prototype.explode_at = function(obj) {
 /* Start the game */
 
 function start_game() {
-  requestAnimationFrame(do_frame);
+  requestAnimationFrame(do_game_frame);
 
   frame_count = 0;
+  is_firing = false;
 
   score = new Score("");
   score.activate();
@@ -380,6 +382,7 @@ function start_game() {
   });
 
   window.addEventListener("keydown", key_down);
+  window.addEventListener("keyup", key_up);
   window.addEventListener("resize", handle_resize);
 
   handle_resize();
@@ -414,7 +417,13 @@ function key_down(evt) {
   }
 
   if (evt.keyCode == ord(' ')) {
-    laser.fire(20);
+    is_firing = true;
+  }
+}
+
+function key_up(evt) {
+  if (evt.keyCode == ord(' ')) {
+    is_firing = false;
   }
 }
 
@@ -432,15 +441,19 @@ function explode(obj) {
 }
 
 
-/* Execute one frame */
+/* Execute one game frame */
 
-function do_frame() {
+function do_game_frame() {
   if (game_lives > 0) {
-    requestAnimationFrame(do_frame);
+    requestAnimationFrame(do_game_frame);
   } else {
     gameover.style.visibility = "visible";
   }
   frame_count++;
+
+  if (is_firing) {
+    laser.fire(20);
+  }
 
   game_objects.forEach(function(game_object) {
     game_object.step();
