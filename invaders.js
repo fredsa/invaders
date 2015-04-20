@@ -1,4 +1,4 @@
-var ALIEN_ROWS = 15;
+var ALIEN_ROWS = 10;
 var ALIEN_COLS = 12;
 var ALIENS = ALIEN_COLS * ALIEN_ROWS;
 var EXPLOSIONS = 3;
@@ -300,9 +300,11 @@ Alien.prototype.edge_check = function edge_check() {
   GameObject.prototype.edge_check.apply(this, arguments);
   if (this.x == this.min_x) {
     this.speed_x = this.MOVE_SPEED;
+    this.y += 10;
   }
   if (this.x == this.max_x) {
     this.speed_x = -this.MOVE_SPEED;
+    this.y += 10;
   }
 };
 
