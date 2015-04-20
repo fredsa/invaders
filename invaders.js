@@ -446,6 +446,9 @@ function start_game() {
   window.addEventListener("keydown", key_down);
   window.addEventListener("keyup", key_up);
   window.addEventListener("resize", handle_resize);
+  window.addEventListener("touchmove", touchmove);
+  window.addEventListener("touchstart", touchstart);
+  window.addEventListener("touched", touched);
 
   handle_resize();
 }
@@ -463,6 +466,20 @@ function getTimeMillis() {
 
 function ord(chr) {
   return chr.charCodeAt(0);
+}
+
+function touchstart(evt) {
+  is_firing = true;
+  evt.preventDefault();
+}
+
+function touched(evt) {
+  is_firing = false;
+  evt.preventDefault();
+}
+
+function touchmove(evt) {
+  ship.x = evt.changedTouches[0].pageX;
 }
 
 function key_down(evt) {
