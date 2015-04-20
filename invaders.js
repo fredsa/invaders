@@ -21,6 +21,7 @@ var context = new AudioContext();
 var synthloop_audio_buffer;
 var laser_audio_buffer;
 var explosion_audio_buffer;
+var frame_count;
 
 window.addEventListener("load", start_game);
 
@@ -328,6 +329,8 @@ Explosion.prototype.explode_at = function(obj) {
 function start_game() {
   requestAnimationFrame(do_frame);
 
+  frame_count = 0;
+
   score = new Score("");
   score.activate();
 
@@ -412,6 +415,7 @@ function do_frame() {
   } else {
     gameover.style.visibility = "visible";
   }
+  frame_count++;
 
   game_objects.forEach(function(game_object) {
     game_object.step();
