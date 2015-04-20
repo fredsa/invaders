@@ -488,9 +488,9 @@ function do_game_frame() {
 
   aliens.forEach(function(alien) {
     if (laser.is_firing() && collision(laser, alien)) {
-      score.add_count(10);
       explode(alien);
       laser.reset();
+      score.add_count(10);
     }
     if (collision(ship, alien)) {
       explode(alien);
@@ -535,12 +535,15 @@ function load_sounds(context, finishedLoading) {
       explosion_audio_buffer = bufferList[2];
       finishedLoading();
     }
-    );
+  );
 
   bufferLoader.load();
 }
 
 function play_sound(buffer, gain, loop) {
+  if (!buffer) {
+    return;
+  }
   var source = context.createBufferSource();
   source.buffer = buffer;
   source.loop = loop;
