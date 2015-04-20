@@ -155,7 +155,6 @@ Ship.prototype.reset = function reset() {
   GameObject.prototype.reset.apply(this, arguments);
   this.x = window.innerWidth / 2;
   this.elem.style.opacity = 1;
-  this.elem.style.color = '';
 };
 
 Ship.prototype.handle_resize = function handle_resize() {
@@ -165,7 +164,7 @@ Ship.prototype.handle_resize = function handle_resize() {
 
 Ship.prototype.step = function step() {
   GameObject.prototype.step.apply(this, arguments);
-  if (this.frames_until_resume) {
+  if (this.frames_until_resume && lives.count > 0) {
     this.frames_until_resume--;
     this.elem.style.opacity = frame_count / 4 % 2 * .4;
     if (this.frames_until_resume == 0) {
@@ -189,9 +188,11 @@ Ship.prototype.hold = function hold() {
 
 Ship.prototype.die = function die() {
   this.frames_until_resume = this.RECOVERY_FRAMES;
-  this.elem.style.opacity = .1;
-  this.elem.style.color = 'red';
+  this.elem.style.opacity = .15;
   lives.add_count(-1);
+  if (lives.count == 0) {
+    gameover.style.visibility = "visible";
+  }
 }
 
 
@@ -474,14 +475,10 @@ function explode(obj) {
 /* Execute one game frame */
 
 function do_game_frame() {
-  if (lives.count > 0) {
-    requestAnimationFrame(do_game_frame);
-  } else {
-    gameover.style.visibility = "visible";
-  }
+  requestAnimationFrame(do_game_frame);
   frame_count++;
 
-  if (is_firing) {
+  if (is_firing && lives.count > 0) {
     laser.fire(20);
   }
 
