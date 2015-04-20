@@ -3,6 +3,26 @@ var ALIEN_COLS = 12;
 var ALIENS = ALIEN_COLS * ALIEN_ROWS;
 var EXPLOSIONS = 3;
 
+// http://en.wikipedia.org/wiki/Web_colors
+var COLORS = [
+  'White',
+  'Silver',
+  'Gray',
+  'Black',
+  'Red',
+  'Maroon',
+  'Yellow',
+  'Olive',
+  'Lime',
+  'Green',
+  'Aqua',
+  'Teal',
+  'Blue',
+  'Navy',
+  'Fuchsia',
+  'Purple',
+];
+
 var KEY_CODE_LEFT = 37;
 var KEY_CODE_UP = 38;
 var KEY_CODE_RIGHT = 39;
@@ -264,6 +284,11 @@ Alien.prototype.activate = function activate() {
 
 Alien.prototype.handle_resize = function handle_resize() {
   GameObject.prototype.handle_resize.apply(this, arguments);
+};
+
+Alien.prototype.step = function step() {
+  GameObject.prototype.step.apply(this, arguments);
+  this.elem.style.color = COLORS[this.row % COLORS.length];
 };
 
 Alien.prototype.do_math = function do_math() {
