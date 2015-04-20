@@ -208,7 +208,7 @@ Laser.prototype.constructor = Laser;
 Laser.prototype.handle_resize = function handle_resize() {
   GameObject.prototype.handle_resize.apply(this, arguments);
   this.min_y = -this.half_height;
-  this.max_y = window.innerHeight + this.half_height;
+  this.max_y = window.innerHeight + this.half_height + 1;
   this.leave_y = window.innerHeight - ship.half_height * 2 - this.half_height;
   if (!this.is_firing()) {
     this.reset();
