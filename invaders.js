@@ -35,6 +35,7 @@ var explosions = new Array(EXPLOSIONS);
 var score;
 var lives;
 var is_firing;
+var aliens_remaining;
 
 var context = new AudioContext();
 var synthloop_audio_buffer;
@@ -64,9 +65,6 @@ function GameObject(innerText) {
     return;
   }
 
-  this.x = -1000;
-  this.y = -1000;
-
   this.elem = create_div(innerText);
 
   this.reset();
@@ -91,6 +89,7 @@ GameObject.prototype.log = function log() {
 
 GameObject.prototype.activate = function activate() {
   this.active = true;
+  this.elem.style.visibility = 'visible';
 };
 
 GameObject.prototype.reset = function reset() {
@@ -98,6 +97,8 @@ GameObject.prototype.reset = function reset() {
   this.speed_y = 0;
 
   this.active = false;
+
+  this.elem.style.visibility = 'hidden';
 };
 
 GameObject.prototype.handle_resize = function handle_resize() {
@@ -138,6 +139,11 @@ GameObject.prototype.step = function step() {
   this.edge_check();
 };
 
+GameObject.prototype.die = function die() {
+  this.reset();
+};
+
+
 
 /* Player ship */
 
@@ -145,11 +151,16 @@ function Ship(innerText) {
   GameObject.apply(this, arguments);
 
   this.MOVE_SPEED = 4;
-  this.RECOVERY_FRAMES = 150;
+  this.RECOVERY_FRAMES = 100;
 };
 
 Ship.prototype = new GameObject();
 Ship.prototype.constructor = Ship;
+
+Ship.prototype.activate = function activate() {
+  GameObject.prototype.activate.apply(this, arguments);
+  this.frames_until_resume = this.RECOVERY_FRAMES;
+};
 
 Ship.prototype.reset = function reset() {
   GameObject.prototype.reset.apply(this, arguments);
@@ -168,8 +179,7 @@ Ship.prototype.step = function step() {
     this.frames_until_resume--;
     this.elem.style.opacity = frame_count / 4 % 2 * .4;
     if (this.frames_until_resume == 0) {
-      this.reset();
-      this.active = true;
+      this.elem.style.opacity = 1;
     }
   }
 };
@@ -187,13 +197,18 @@ Ship.prototype.hold = function hold() {
 }
 
 Ship.prototype.die = function die() {
-  this.frames_until_resume = this.RECOVERY_FRAMES;
-  this.elem.style.opacity = .15;
+  GameObject.prototype.die.apply(this, arguments);
   lives.add_count(-1);
   if (lives.count == 0) {
     gameover.style.visibility = "visible";
+  } else {
+    this.activate();
   }
 }
+
+Ship.prototype.shields_up = function shields_up() {
+  return this.frames_until_resume > 0;
+};
 
 
 /* Player laser */
@@ -295,7 +310,6 @@ function Alien(innerText, column, row) {
   GameObject.apply(this, arguments);
 
   this.MOVE_SPEED = 1;
-  this.speed_x = this.MOVE_SPEED;
   this.column = column;
   this.row = row;
   this.elem.style.color = COLORS[this.row % COLORS.length];
@@ -306,17 +320,18 @@ Alien.prototype.constructor = Alien;
 
 Alien.prototype.reset = function reset() {
   GameObject.prototype.reset.apply(this, arguments);
-  this.x = -1000;
-  this.y = -1000;
+};
+
+Alien.prototype.activate = function activate() {
+  GameObject.prototype.activate.apply(this, arguments);
+  this.aliens_cover_width = window.innerWidth * .6;
+  this.x = window.innerWidth * .2 + this.aliens_cover_width / ALIEN_COLS * this.column;
+  this.y = window.innerHeight * .1 + this.half_height * 2.1 * this.row;
+  this.speed_x = this.MOVE_SPEED;
 };
 
 Alien.prototype.handle_resize = function handle_resize() {
   GameObject.prototype.handle_resize.apply(this, arguments);
-  this.aliens_cover_width = window.innerWidth * .6;
-  if (this.active) {
-    this.x = window.innerWidth * .2 + this.aliens_cover_width / ALIEN_COLS * this.column;
-    this.y = window.innerHeight * .1 + this.half_height * 2.1 * this.row;
-  }
 };
 
 Alien.prototype.step = function step() {
@@ -337,6 +352,11 @@ Alien.prototype.edge_check = function edge_check() {
     this.speed_x = -this.MOVE_SPEED;
     this.y += 10;
   }
+};
+
+Alien.prototype.die = function die() {
+  GameObject.prototype.die.apply(this, arguments);
+  aliens_remaining--;
 };
 
 
@@ -378,6 +398,16 @@ Explosion.prototype.explode_at = function(obj) {
 };
 
 
+function reset_aliens() {
+  aliens_remaining = ALIENS;
+  for(var i=0; i<ALIEN_COLS; i++) {
+    for(var j=0; j<ALIEN_ROWS; j++) {
+      aliens[i + j * ALIEN_COLS].activate();
+    }
+  }
+}
+
+
 /* Start the game */
 
 function start_game() {
@@ -401,9 +431,9 @@ function start_game() {
   for(var i=0; i<ALIEN_COLS; i++) {
     for(var j=0; j<ALIEN_ROWS; j++) {
       aliens[i + j * ALIEN_COLS] = new Alien("<o>", i, j);
-      aliens[i + j * ALIEN_COLS].activate();
     }
   }
+  reset_aliens();
 
   for(var i=0; i<EXPLOSIONS; i++) {
     explosions[i] = new Explosion("***");
@@ -470,7 +500,7 @@ function explode(obj) {
     explosions[i].explode_at(obj);
     break;
   }
-  obj.reset();
+  obj.die();
 }
 
 
@@ -488,18 +518,28 @@ function do_game_frame() {
     game_object.step();
   });
 
-  aliens.forEach(function(alien) {
-    if (laser.is_firing() && collision(laser, alien)) {
-      explode(alien);
-      laser.reset();
-      score.add_count(10);
-    }
-    if (collision(ship, alien)) {
-      explode(alien);
-      explode(ship);
-      ship.die();
-    }
-  });
+  if (laser.is_firing()) {
+    aliens.forEach(function(alien) {
+      if (collision(laser, alien)) {
+        explode(alien);
+        laser.reset();
+        score.add_count(10);
+      }
+    });
+  }
+
+  if (!ship.shields_up()) {
+    aliens.forEach(function(alien) {
+      if (collision(ship, alien)) {
+        explode(alien);
+        explode(ship);
+      }
+    });
+  }
+
+  if (aliens_remaining == 0) {
+    reset_aliens();
+  }
 }
 
 
